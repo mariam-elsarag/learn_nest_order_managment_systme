@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsPositive, IsString } from "class-validator";
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from "class-validator";
 
 export class CreateProduct {
   @IsString()
@@ -20,19 +26,23 @@ export class CreateProduct {
   quantity: number;
 }
 export class UpdateProduct {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   title?: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   description?: string;
 
+  @IsOptional()
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()
   price?: number;
 
+  @IsOptional()
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()

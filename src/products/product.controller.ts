@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -37,6 +38,7 @@ export class ProductController {
   }
 
   @Delete(":id")
+  @HttpCode(204)
   deleteProduct(@Param("id", ParseIntPipe) id: number) {
     return this.productSerivice.delete(id);
   }
