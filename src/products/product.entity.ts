@@ -11,11 +11,11 @@ const CURENT_TIMESTAMP = "CURRENT_TIMESTAMP(6)";
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column()
+  @Column({ type: "varchar", length: 255 })
   title: string;
   @Column()
   description: string;
-  @Column()
+  @Column({ type: "float" })
   price: number;
   @Column()
   quantity: number;

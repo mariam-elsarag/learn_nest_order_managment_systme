@@ -4,11 +4,13 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Length,
 } from "class-validator";
 
 export class CreateProduct {
   @IsString()
   @IsNotEmpty()
+  @Length(1, 255)
   title: string;
 
   @IsString()
@@ -29,6 +31,7 @@ export class UpdateProduct {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @Length(1, 255)
   title?: string;
 
   @IsOptional()

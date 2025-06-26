@@ -4,22 +4,29 @@ import { ProductModule } from "./products/product.module";
 import { OrderModule } from "./orders/order.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Product } from "./products/product.entity";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
     UserModule,
     ProductModule,
     OrderModule,
-    TypeOrmModule.forRoot({
-      type: "postgres",
-      database: "oms-app-db",
-      username: "postgres",
-      password: "01150464958",
-      port: 5432,
-      host: "localhost",
-      synchronize: true, //only in dev(no need for migration ) in porducation will delete data
-      entities: [Product],
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          type: "postgres",
+          database: config.get<string>("DB_DATABASE"),
+          username: config.get<string>("DB_USERNAME"),
+          password: config.get<string>("DB_PASSWORD"),
+          port: config.get<number>("DB_PORT"),
+          host: "localhost",
+          synchronize: process.env.NODE_ENV !== "producation" ? true : false, //only in dev(no need for migration ) in porducation will delete data
+          entities: [Product],
+        };
+      },
     }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
   ],
 })
 export class AppModule {}

@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProduct, UpdateProduct } from "./dto/product.dto";
+import { Repository } from "typeorm";
+import { Product } from "./product.entity";
+import { InjectRepository } from "@nestjs/typeorm";
 
 type productType = {
   id: number;
@@ -11,41 +14,43 @@ type productType = {
 
 @Injectable()
 export class ProductService {
-  private products: productType[] = [
-    { id: 1, title: "Pen", description: "test", price: 5, quantity: 10 },
-    { id: 2, title: "Book", description: "test", price: 100, quantity: 100 },
-  ];
-  create({ title, description, price, quantity }: CreateProduct) {
-    const newProduct = {
-      id: this.products?.length + 1,
-      title,
-      description,
-      price,
-      quantity,
-    };
-    this.products.push(newProduct);
-    return newProduct;
+  constructor(
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+  ) {}
+
+  async create(dto: CreateProduct) {
+    const newProduct = this.productRepository.create(dto);
+    return await this.productRepository.save(newProduct);
   }
-  update({ title, description, price, quantity }: UpdateProduct, id: number) {
-    return { message: "Successfully update product" };
-  }
+
   getAll() {
-    return this.products;
+    return this.productRepository.find();
   }
-  getOne(id: number) {
-    const product = this.products.find((product) => product.id === +id);
+  async getOne(id: number) {
+    const product = await this.productRepository.findOne({ where: { id } });
     if (!product) {
       throw new NotFoundException("Product not found", {
         description: "this is description",
       });
     }
-    return product || {};
+    return product;
   }
-  delete(id: number) {
-    const product = this.products.find((product) => product.id === +id);
-    if (!product) {
-      throw new NotFoundException("Product not found");
-    }
-    return { message: "Successfully delete product" };
+
+  async update(dto: UpdateProduct, id: number) {
+    const product = await this.getOne(id);
+
+    product.title = dto.title ?? product.title;
+    product.description = dto.description ?? product.description;
+    product.price = dto.price ?? product.price;
+    product.quantity = dto.quantity ?? product.quantity;
+
+    return this.productRepository.save(product);
+  }
+
+  async delete(id: number) {
+    const product = await this.getOne(id);
+    await this.productRepository.remove(product);
+    return;
   }
 }
