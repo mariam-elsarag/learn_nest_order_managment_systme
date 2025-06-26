@@ -1,12 +1,16 @@
+import { Review } from "src/reviews/review.entity";
+import { User } from "src/users/user.entity";
+import { CURENT_TIMESTAMP } from "src/utils/constant";
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 
-const CURENT_TIMESTAMP = "CURRENT_TIMESTAMP(6)";
 @Entity({ name: "products" })
 export class Product {
   @PrimaryGeneratedColumn()
@@ -27,4 +31,10 @@ export class Product {
     onUpdate: CURENT_TIMESTAMP,
   })
   updateAt: Date;
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews: Review[];
+
+  @ManyToOne(() => User, (user) => user.products)
+  user: User;
 }
