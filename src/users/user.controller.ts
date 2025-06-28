@@ -4,19 +4,22 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
-  Req,
   SerializeOptions,
   UseGuards,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { LoginDto } from "./dto/login.dto";
 import { AuthGuard } from "./guards/auth.guard";
-import { CURETNT_USER_KEY } from "src/utils/constant";
+
 import { currentUser, Roles } from "./decorators/user.decorators";
 import { jwtTypePayload } from "src/utils/types";
 import { Role } from "src/utils/enum";
 import { RegisterDto } from "./dto/register.dto";
+import { AdminUpdateUserDataDto, UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("/api")
 export class UserController {
@@ -40,11 +43,43 @@ export class UserController {
     const { id } = payload;
     return this.userService.userDetails(id);
   }
-  @Get("/user/list")
+  @Patch("/user")
+  @UseGuards(AuthGuard)
+  updateUserData(
+    @currentUser() payload: jwtTypePayload,
+    @Body() body: UpdateUserDto,
+  ) {
+    const { id } = payload;
+    return this.userService.updaterUserData<UpdateUserDto>(id, body);
+  }
+
+  // admin
+  // get all users list
+  @Get("/admin/user/list")
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard)
   @SerializeOptions({ strategy: "excludeAll" })
   allUsers() {
     return this.userService.usersList();
+  }
+
+  // get user details
+  @Get("/admin/user/:id")
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard)
+  getUserDetails(@Param("id", ParseIntPipe) id: number) {
+    return this.userService.userDetails(id);
+  }
+
+  // update users data
+  @Patch("/admin/user/:id")
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard)
+  @SerializeOptions({ strategy: "excludeAll" })
+  updateUserDetailsByAdmin(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: AdminUpdateUserDataDto,
+  ) {
+    return this.userService.updaterUserData<AdminUpdateUserDataDto>(id, body);
   }
 }

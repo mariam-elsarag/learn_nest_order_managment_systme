@@ -2,7 +2,10 @@ import { Exclude, Expose } from "class-transformer";
 import { Role } from "src/utils/enum";
 
 @Exclude()
-export class UserListResponseDto {
+export class UserResponseDto {
+  @Expose()
+  id: number;
+
   @Expose()
   full_name: string;
 
@@ -14,7 +17,7 @@ export class UserListResponseDto {
 
   @Expose()
   createdAt: Date;
-  constructor(partial: Partial<UserListResponseDto>) {
+  constructor(partial: Partial<UserResponseDto>) {
     Object.assign(this, partial);
   }
 }

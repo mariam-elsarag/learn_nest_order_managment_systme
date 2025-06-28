@@ -12,7 +12,8 @@ import * as bcrypt from "bcryptjs";
 import { JwtService } from "@nestjs/jwt";
 import { jwtTypePayload } from "src/utils/types";
 import { RegisterDto, RegisterResponseDto } from "./dto/register.dto";
-import { UserListResponseDto } from "./dto/user.dto";
+import { UserResponseDto } from "./dto/user.dto";
+import { AdminUpdateUserDataDto, UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UserService {
@@ -74,17 +75,37 @@ export class UserService {
     if (!user) {
       throw new NotFoundException("User not found");
     }
-    return { id: user.id, full_name: user.full_name, role: user.role };
+    return new UserResponseDto(user);
   }
+  /**
+   *
+   * @param id User id
+   * @param body can be (full_name, email)
+   * @returns id, full_name, role,createdAt
+   */
+  async updaterUserData<T extends Partial<User>>(
+    id: number,
+    body: T,
+  ): Promise<UserResponseDto> {
+    const user = await this.userDetails(id);
+    Object.entries(body).forEach(([key, value]) => {
+      if (value !== undefined) {
+        user[key] = value;
+      }
+    });
 
+    const updatedUser = await this.userRepository.save(user);
+    return new UserResponseDto(updatedUser);
+  }
   /**
    * Get all users (admin)
-   * @returns [{full_name,role}]
+   * @returns [{full_name,email,role,createdAt}]
    */
   async usersList() {
     const users = await this.userRepository.find();
-    return users.map((user) => new UserListResponseDto(user));
+    return users.map((user) => new UserResponseDto(user));
   }
+
   /**
    * Generate JWT token
    * @param payload (id,role)
