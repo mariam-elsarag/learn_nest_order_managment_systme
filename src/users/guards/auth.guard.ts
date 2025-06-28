@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -12,16 +13,23 @@ import { JwtReturnTypePayload } from "src/utils/types";
 import { User } from "../user.entity";
 import { Repository } from "typeorm";
 import { CURETNT_USER_KEY } from "src/utils/constant";
+import { Reflector } from "@nestjs/core";
+import { Role } from "src/utils/enum";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly reflector: Reflector,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const roles: Role[] = this.reflector.getAllAndOverride<Role[]>("roles", [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     const req: Request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(req);
 
@@ -51,10 +59,16 @@ export class AuthGuard implements CanActivate {
       }
 
       req[CURETNT_USER_KEY] = { id: user.id, role: user.role };
+      // check if this endpoint has authorization if yes and role if user not equal to type we want we will have exception
+      if (roles && roles.length > 0 && !roles.includes(user.role)) {
+        throw new ForbiddenException(
+          "You are not allowed to perform this action.",
+        );
+      }
       return true;
     } catch (error) {
       console.error("AuthGuard error:", error);
-      throw new UnauthorizedException("Invalid or expired token.");
+      throw error;
     }
   }
 

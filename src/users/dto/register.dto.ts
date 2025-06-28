@@ -1,11 +1,11 @@
+import { Exclude, Expose } from "class-transformer";
 import {
   IsEmail,
   IsNotEmpty,
+  IsStrongPassword,
+  MaxLength,
   IsOptional,
   IsString,
-  IsStrongPassword,
-  Length,
-  MaxLength,
 } from "class-validator";
 
 export class RegisterDto {
@@ -23,13 +23,22 @@ export class RegisterDto {
   @MaxLength(150)
   full_name?: string;
 }
-export class LoginDto {
-  @IsEmail()
-  @MaxLength(250)
-  @IsNotEmpty()
+
+@Exclude()
+export class RegisterResponseDto {
+  @Expose()
+  full_name: string;
+
+  @Expose()
   email: string;
 
-  @IsStrongPassword()
-  @IsNotEmpty()
-  password: string;
+  @Expose()
+  role: string;
+
+  @Expose()
+  token: string;
+
+  constructor(partial: Partial<RegisterResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

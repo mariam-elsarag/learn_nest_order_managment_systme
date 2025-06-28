@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { LoginDto, RegisterDto } from "./dto/auth.dto";
+import { LoginDto, LoginResponseDto } from "./dto/login.dto";
 import { Repository } from "typeorm";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -11,6 +11,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcryptjs";
 import { JwtService } from "@nestjs/jwt";
 import { jwtTypePayload } from "src/utils/types";
+import { RegisterDto, RegisterResponseDto } from "./dto/register.dto";
+import { UserListResponseDto } from "./dto/user.dto";
 
 @Injectable()
 export class UserService {
@@ -23,7 +25,7 @@ export class UserService {
    * @param body data for creating new users
    * @returns (full_name,role,email)
    */
-  async register(body: RegisterDto) {
+  async register(body: RegisterDto): Promise<RegisterResponseDto> {
     const { email, password, full_name } = body;
     const user = await this.userRepository.findOne({
       where: { email: email.toLocaleLowerCase() },
@@ -40,18 +42,14 @@ export class UserService {
       password: hashedPassword,
     });
     newUser = await this.userRepository.save(newUser);
-    return {
-      full_name: newUser.full_name,
-      email: newUser.email,
-      role: newUser.role,
-    };
+    return new RegisterResponseDto(newUser);
   }
   /**
    * Login
    * @param body (email,passwrod)
    * @returns (id,token,full_name,email,role)
    */
-  async login(body: LoginDto) {
+  async login(body: LoginDto): Promise<LoginResponseDto> {
     const { email, password } = body;
     const user = await this.userRepository.findOne({
       where: { email: email.toLocaleLowerCase() },
@@ -69,13 +67,7 @@ export class UserService {
     const payload: jwtTypePayload = { id: user.id, role: user.role };
     const token = await this.generateJWT(payload);
 
-    return {
-      id: user.id,
-      token: token,
-      full_name: user.full_name,
-      role: user.role,
-      email: user.email,
-    };
+    return new LoginResponseDto({ ...user, token });
   }
   async userDetails(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });
@@ -83,6 +75,15 @@ export class UserService {
       throw new NotFoundException("User not found");
     }
     return { id: user.id, full_name: user.full_name, role: user.role };
+  }
+
+  /**
+   * Get all users (admin)
+   * @returns [{full_name,role}]
+   */
+  async usersList() {
+    const users = await this.userRepository.find();
+    return users.map((user) => new UserListResponseDto(user));
   }
   /**
    * Generate JWT token
