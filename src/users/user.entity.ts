@@ -46,9 +46,7 @@ export class User {
   })
   updatedAt: Date;
 
-  @OneToMany(() => Product, (product) => product.user, {
-    onDelete: "CASCADE",
-  })
+  @OneToMany(() => Product, (product) => product.user)
   products: Product[];
 
   @OneToMany(() => Review, (review) => review.user)

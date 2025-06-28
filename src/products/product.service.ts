@@ -1,8 +1,19 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreateProduct, UpdateProduct } from "./dto/product.dto";
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import {
+  CreateProduct,
+  ProductResposeDto,
+  UpdateProduct,
+} from "./dto/product.dto";
 import { Repository } from "typeorm";
 import { Product } from "./product.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { User } from "src/users/user.entity";
+import { jwtTypePayload } from "src/utils/types";
+import { Role } from "src/utils/enum";
 
 type productType = {
   id: number;
@@ -19,39 +30,55 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async create(dto: CreateProduct, id: number) {
-    const newProduct = this.productRepository.create(dto);
-
-    return await this.productRepository.save(newProduct);
+  async create(dto: CreateProduct, user: User) {
+    const newProduct = this.productRepository.create({ ...dto, user: user });
+    await this.productRepository.save(newProduct);
+    return new ProductResposeDto(newProduct);
   }
 
   getAll() {
     return this.productRepository.find();
   }
   async getOne(id: number) {
-    const product = await this.productRepository.findOne({ where: { id } });
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ["user"],
+    });
     if (!product) {
-      throw new NotFoundException("Product not found", {
-        description: "this is description",
-      });
+      throw new NotFoundException("Product not found");
     }
-    return product;
+
+    return new ProductResposeDto(product);
   }
 
-  async update(dto: UpdateProduct, id: number) {
+  async update(dto: UpdateProduct, id: number, payload: jwtTypePayload) {
     const product = await this.getOne(id);
-
-    product.title = dto.title ?? product.title;
-    product.description = dto.description ?? product.description;
-    product.price = dto.price ?? product.price;
-    product.quantity = dto.quantity ?? product.quantity;
-
-    return this.productRepository.save(product);
+    let updatedProduct = product;
+    if (product.user.id === payload.id || payload.role === Role.ADMIN) {
+      if (dto) {
+        Object.entries(dto).forEach(([key, value]) => {
+          if (value !== undefined) {
+            product[key] = value;
+          }
+        });
+        updatedProduct = await this.productRepository.save(product);
+      }
+      return new ProductResposeDto(updatedProduct);
+    } else {
+      throw new ForbiddenException(
+        "Access denied, you are not allow to perform this action",
+      );
+    }
   }
 
-  async delete(id: number) {
+  async delete(id: number, payload: jwtTypePayload): Promise<void> {
     const product = await this.getOne(id);
-    await this.productRepository.remove(product);
-    return;
+    if (product.user.id === payload.id || payload.role === Role.ADMIN) {
+      await this.productRepository.delete(product.id);
+    } else {
+      throw new ForbiddenException(
+        "Access denied, you are not allow to perform this action",
+      );
+    }
   }
 }

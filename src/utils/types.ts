@@ -1,6 +1,8 @@
+import { Role } from "./enum";
+
 export type jwtTypePayload = {
   id: number;
-  role: string;
+  role: Role;
 };
 
 export type JwtReturnTypePayload = {

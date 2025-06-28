@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -13,6 +14,7 @@ import { JwtService } from "@nestjs/jwt";
 import { jwtTypePayload } from "src/utils/types";
 import { RegisterDto, RegisterResponseDto } from "./dto/register.dto";
 import { UserResponseDto } from "./dto/user.dto";
+import { Role } from "src/utils/enum";
 
 @Injectable()
 export class UserService {
@@ -33,8 +35,8 @@ export class UserService {
     if (user) {
       throw new BadRequestException("Email already exist");
     }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const hashedPassword = await this.hashPassword(password);
 
     let newUser = this.userRepository.create({
       email: email.toLocaleLowerCase(),
@@ -86,14 +88,20 @@ export class UserService {
 
   //______________________________________________
   /**
-   * Delete user by id
+   * Delete user
    * @description CASCADE products when delete user
    * @param id user id
    *
    */
-  async delete(id: number): Promise<void> {
-    await this.userDetails(id);
-    await this.userRepository.delete(id);
+  async delete(userId: number, payload: jwtTypePayload): Promise<void> {
+    const user = await this.userDetails(userId);
+    if (user.id === payload.id || payload.role === Role.ADMIN) {
+      await this.userRepository.delete(userId);
+    } else {
+      throw new ForbiddenException(
+        "Access denied,you are not allow to preform this action",
+      );
+    }
   }
 
   //______________________________________________
@@ -109,11 +117,14 @@ export class UserService {
   ): Promise<UserResponseDto> {
     const user = await this.userDetails(id);
     Object.entries(body).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value !== undefined && key !== "password") {
         user[key] = value;
       }
     });
-
+    if (body.password) {
+      user.password = await this.hashPassword(body.password);
+      user.passwordChangedAt = new Date();
+    }
     const updatedUser = await this.userRepository.save(user);
     return new UserResponseDto(updatedUser);
   }
@@ -136,5 +147,14 @@ export class UserService {
    */
   private generateJWT(payload: jwtTypePayload): Promise<string> {
     return this.jwtService.signAsync(payload);
+  }
+  /**
+   *Hashing password
+   * @param password plain text password
+   * @returns hashed password
+   */
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
   }
 }

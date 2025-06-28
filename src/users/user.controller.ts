@@ -53,7 +53,12 @@ export class UserController {
     const { id } = payload;
     return this.userService.updaterUserData<UpdateUserDto>(id, body);
   }
-
+  @Delete("/user")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleterUser(@currentUser() payload: jwtTypePayload) {
+    return this.userService.delete(payload.id, payload);
+  }
   // admin
   // get all users list
   @Get("/admin/user/list")
@@ -87,7 +92,11 @@ export class UserController {
   @Delete("/admin/user/:id")
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard)
-  deleterUserByAdmin(@Param("id", ParseIntPipe) id: number) {
-    return this.userService.delete(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleterUserByAdmin(
+    @Param("id", ParseIntPipe) id: number,
+    @currentUser() payload: jwtTypePayload,
+  ) {
+    return this.userService.delete(id, payload);
   }
 }

@@ -1,3 +1,4 @@
+import { Exclude, Expose } from "class-transformer";
 import {
   IsNotEmpty,
   IsNumber,
@@ -6,6 +7,7 @@ import {
   IsString,
   Length,
 } from "class-validator";
+import { User } from "src/users/user.entity";
 
 export class CreateProduct {
   @IsString()
@@ -50,4 +52,31 @@ export class UpdateProduct {
   @IsPositive()
   @IsNotEmpty()
   quantity?: number;
+}
+
+@Exclude()
+export class ProductResposeDto {
+  @Expose()
+  id: number;
+
+  @Expose()
+  title: string;
+
+  @Expose()
+  description: string;
+
+  @Expose()
+  price: number;
+
+  @Expose()
+  quantity: number;
+
+  @Expose()
+  createdAt: Date;
+
+  user: User;
+
+  constructor(partial: Partial<ProductResposeDto>) {
+    Object.assign(this, partial);
+  }
 }

@@ -58,17 +58,30 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException("Invalid or expired token.");
       }
 
-      req[CURETNT_USER_KEY] = { id: user.id, role: user.role };
       // check if this endpoint has authorization if yes and role if user not equal to type we want we will have exception
       if (roles && roles.length > 0 && !roles.includes(user.role)) {
         throw new ForbiddenException(
           "You are not allowed to perform this action.",
         );
       }
+      req[CURETNT_USER_KEY] = user;
       return true;
     } catch (error) {
       console.error("AuthGuard error:", error);
-      throw error;
+      if (
+        error.name === "JsonWebTokenError" ||
+        error.name === "TokenExpiredError" ||
+        error.name === "NotBeforeError"
+      ) {
+        throw new UnauthorizedException("Invalid or expired token.");
+      }
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw new UnauthorizedException("Authentication failed.");
     }
   }
 

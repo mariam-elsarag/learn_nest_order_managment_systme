@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -14,6 +15,8 @@ import { ProductService } from "./product.service";
 import { CreateProduct, UpdateProduct } from "./dto/product.dto";
 import { AuthGuard } from "src/users/guards/auth.guard";
 import { currentUser } from "src/users/decorators/user.decorators";
+
+import { User } from "src/users/user.entity";
 import { jwtTypePayload } from "src/utils/types";
 
 @Controller("/api/product")
@@ -22,20 +25,18 @@ export class ProductController {
 
   @Post()
   @UseGuards(AuthGuard)
-  createNewProduct(
-    @currentUser() payload: jwtTypePayload,
-    @Body() body: CreateProduct,
-  ) {
-    const { id } = payload;
-    return this.productSerivice.create(body, id);
+  createNewProduct(@currentUser() payload: User, @Body() body: CreateProduct) {
+    return this.productSerivice.create(body, payload);
   }
 
   @Patch(":id")
+  @UseGuards(AuthGuard)
   updateProduct(
     @Body() body: UpdateProduct,
     @Param("id", ParseIntPipe) id: number,
+    @currentUser() payload: jwtTypePayload,
   ) {
-    return this.productSerivice.update(body, id);
+    return this.productSerivice.update(body, id, payload);
   }
   @Get()
   getAllProducts() {
@@ -47,8 +48,12 @@ export class ProductController {
   }
 
   @Delete(":id")
-  @HttpCode(204)
-  deleteProduct(@Param("id", ParseIntPipe) id: number) {
-    return this.productSerivice.delete(id);
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteProduct(
+    @Param("id", ParseIntPipe) id: number,
+    @currentUser() payload: jwtTypePayload,
+  ) {
+    return this.productSerivice.delete(id, payload);
   }
 }

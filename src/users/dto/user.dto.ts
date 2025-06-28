@@ -15,6 +15,9 @@ export class UserResponseDto {
   @Expose()
   role: Role;
 
+  password: string;
+  passwordChangedAt: Date;
+
   @Expose()
   createdAt: Date;
   constructor(partial: Partial<UserResponseDto>) {

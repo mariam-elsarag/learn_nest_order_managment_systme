@@ -3,11 +3,12 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsStrongPassword,
   MaxLength,
 } from "class-validator";
 import { Role } from "src/utils/enum";
 
-export class UpdateUserDto {
+class UserType {
   @IsOptional()
   @IsString()
   @MaxLength(150)
@@ -19,7 +20,13 @@ export class UpdateUserDto {
   email?: string;
 }
 
-export class AdminUpdateUserDataDto extends UpdateUserDto {
+export class UpdateUserDto extends UserType {
+  @IsOptional()
+  @IsStrongPassword()
+  password?: string;
+}
+
+export class AdminUpdateUserDataDto extends UserType {
   @IsOptional()
   role?: Role;
 }
