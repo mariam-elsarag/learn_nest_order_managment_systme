@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -81,5 +82,12 @@ export class UserController {
     @Body() body: AdminUpdateUserDataDto,
   ) {
     return this.userService.updaterUserData<AdminUpdateUserDataDto>(id, body);
+  }
+  // delete user by id
+  @Delete("/admin/user/:id")
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard)
+  deleterUserByAdmin(@Param("id", ParseIntPipe) id: number) {
+    return this.userService.delete(id);
   }
 }

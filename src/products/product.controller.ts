@@ -8,17 +8,26 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from "@nestjs/common";
 import { ProductService } from "./product.service";
 import { CreateProduct, UpdateProduct } from "./dto/product.dto";
+import { AuthGuard } from "src/users/guards/auth.guard";
+import { currentUser } from "src/users/decorators/user.decorators";
+import { jwtTypePayload } from "src/utils/types";
 
 @Controller("/api/product")
 export class ProductController {
   constructor(private readonly productSerivice: ProductService) {}
 
   @Post()
-  createNewProduct(@Body() body: CreateProduct) {
-    return this.productSerivice.create(body);
+  @UseGuards(AuthGuard)
+  createNewProduct(
+    @currentUser() payload: jwtTypePayload,
+    @Body() body: CreateProduct,
+  ) {
+    const { id } = payload;
+    return this.productSerivice.create(body, id);
   }
 
   @Patch(":id")

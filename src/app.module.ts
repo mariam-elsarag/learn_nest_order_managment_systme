@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ReviewModule } from "./reviews/review.module";
 import { Review } from "./reviews/review.entity";
 import { User } from "./users/user.entity";
+import { JwtModule } from "@nestjs/jwt";
 
 @Module({
   imports: [
@@ -27,6 +28,18 @@ import { User } from "./users/user.entity";
           host: "localhost",
           synchronize: process.env.NODE_ENV !== "producation" ? true : false, //only in dev(no need for migration ) in porducation will delete data
           entities: [Product, Review, User],
+        };
+      },
+    }),
+    TypeOrmModule.forFeature([User]),
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          global: true,
+          secret: config.get<string>("JWT_SECRET"),
+          signOptions: { expiresIn: config.get<string>("JWT_EXPIRE_IN") },
         };
       },
     }),

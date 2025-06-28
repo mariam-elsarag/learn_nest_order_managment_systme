@@ -13,7 +13,6 @@ import { JwtService } from "@nestjs/jwt";
 import { jwtTypePayload } from "src/utils/types";
 import { RegisterDto, RegisterResponseDto } from "./dto/register.dto";
 import { UserResponseDto } from "./dto/user.dto";
-import { AdminUpdateUserDataDto, UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UserService {
@@ -70,15 +69,36 @@ export class UserService {
 
     return new LoginResponseDto({ ...user, token });
   }
-  async userDetails(id: number) {
+
+  //______________________________________________
+  /**
+   *
+   * @param id user id
+   * @returns (id,full_name,email,role,createdAt)
+   */
+  async userDetails(id: number): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
     return new UserResponseDto(user);
   }
+
+  //______________________________________________
   /**
+   * Delete user by id
+   * @description CASCADE products when delete user
+   * @param id user id
    *
+   */
+  async delete(id: number): Promise<void> {
+    await this.userDetails(id);
+    await this.userRepository.delete(id);
+  }
+
+  //______________________________________________
+  /**
+   * Update user data
    * @param id User id
    * @param body can be (full_name, email)
    * @returns id, full_name, role,createdAt
@@ -97,6 +117,8 @@ export class UserService {
     const updatedUser = await this.userRepository.save(user);
     return new UserResponseDto(updatedUser);
   }
+
+  //______________________________________________
   /**
    * Get all users (admin)
    * @returns [{full_name,email,role,createdAt}]
@@ -106,6 +128,7 @@ export class UserService {
     return users.map((user) => new UserResponseDto(user));
   }
 
+  //______________________________________________
   /**
    * Generate JWT token
    * @param payload (id,role)
