@@ -12,6 +12,8 @@ import { UserService } from "./user.service";
 import { LoginDto, RegisterDto } from "./dto/auth.dto";
 import { AuthGuard } from "./guards/auth.guard";
 import { CURETNT_USER_KEY } from "src/utils/constant";
+import { currentUser } from "./decorators/user.decorators";
+import { jwtTypePayload } from "src/utils/types";
 
 @Controller("/api")
 export class UserController {
@@ -29,8 +31,8 @@ export class UserController {
 
   @Get("/user")
   @UseGuards(AuthGuard)
-  currentUserDetails(@Req() request: any) {
-    const { id } = request[CURETNT_USER_KEY];
+  currentUserDetails(@currentUser() payload: jwtTypePayload) {
+    const { id } = payload;
     return this.userService.userDetails(id);
   }
 }

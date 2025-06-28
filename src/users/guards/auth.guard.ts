@@ -50,7 +50,7 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException("Invalid or expired token.");
       }
 
-      req[CURETNT_USER_KEY] = user;
+      req[CURETNT_USER_KEY] = { id: user.id, role: user.role };
       return true;
     } catch (error) {
       console.error("AuthGuard error:", error);
