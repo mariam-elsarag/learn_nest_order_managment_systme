@@ -33,6 +33,9 @@ export class User {
   @Column({ type: "boolean", default: false })
   isAccountVerify: boolean;
 
+  @CreateDateColumn({ type: "timestamp", default: null })
+  passwordChangedAt: Date;
+
   @CreateDateColumn({ type: "timestamp", default: () => CURENT_TIMESTAMP })
   createdAt: Date;
 

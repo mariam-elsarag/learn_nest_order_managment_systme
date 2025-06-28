@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { LoginDto, RegisterDto } from "./dto/auth.dto";
 import { Repository } from "typeorm";
 import { User } from "./user.entity";
@@ -63,7 +67,8 @@ export class UserService {
       );
     }
     const payload: jwtTypePayload = { id: user.id, role: user.role };
-    const token = this.generateJWT(payload);
+    const token = await this.generateJWT(payload);
+
     return {
       id: user.id,
       token: token,
@@ -71,6 +76,13 @@ export class UserService {
       role: user.role,
       email: user.email,
     };
+  }
+  async userDetails(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return { id: user.id, full_name: user.full_name, role: user.role };
   }
   /**
    * Generate JWT token
