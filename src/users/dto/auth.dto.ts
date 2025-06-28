@@ -23,3 +23,13 @@ export class RegisterDto {
   @MaxLength(150)
   full_name?: string;
 }
+export class LoginDto {
+  @IsEmail()
+  @MaxLength(250)
+  @IsNotEmpty()
+  email: string;
+
+  @IsStrongPassword()
+  @IsNotEmpty()
+  password: string;
+}
