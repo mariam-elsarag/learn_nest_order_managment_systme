@@ -1,3 +1,4 @@
+import { Exclude } from "class-transformer";
 import { timeStamp } from "console";
 import { Product } from "src/products/product.entity";
 import { Review } from "src/reviews/review.entity";
@@ -25,11 +26,13 @@ export class User {
   email: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column({ type: "enum", enum: Role, default: Role.User })
   role: Role;
 
+  @Exclude()
   @Column({ type: "boolean", default: false })
   isAccountVerify: boolean;
 

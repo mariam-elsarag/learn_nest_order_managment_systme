@@ -17,7 +17,7 @@ import { AuthGuard } from "src/users/guards/auth.guard";
 import { currentUser } from "src/users/decorators/user.decorators";
 
 import { User } from "src/users/user.entity";
-import { jwtTypePayload } from "src/utils/types";
+import { JwtTypePayload } from "src/utils/types";
 
 @Controller("/api/product")
 export class ProductController {
@@ -34,7 +34,7 @@ export class ProductController {
   updateProduct(
     @Body() body: UpdateProduct,
     @Param("id", ParseIntPipe) id: number,
-    @currentUser() payload: jwtTypePayload,
+    @currentUser() payload: JwtTypePayload,
   ) {
     return this.productSerivice.update(body, id, payload);
   }
@@ -52,7 +52,7 @@ export class ProductController {
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteProduct(
     @Param("id", ParseIntPipe) id: number,
-    @currentUser() payload: jwtTypePayload,
+    @currentUser() payload: JwtTypePayload,
   ) {
     return this.productSerivice.delete(id, payload);
   }

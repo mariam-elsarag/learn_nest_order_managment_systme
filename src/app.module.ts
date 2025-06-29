@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { ClassSerializerInterceptor, Module } from "@nestjs/common";
 import { UserModule } from "./users/user.module";
 import { ProductModule } from "./products/product.module";
 import { OrderModule } from "./orders/order.module";
@@ -9,6 +9,7 @@ import { ReviewModule } from "./reviews/review.module";
 import { Review } from "./reviews/review.entity";
 import { User } from "./users/user.entity";
 import { JwtModule } from "@nestjs/jwt";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 
 @Module({
   imports: [
@@ -44,6 +45,12 @@ import { JwtModule } from "@nestjs/jwt";
       },
     }),
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
   ],
 })
 export class AppModule {}

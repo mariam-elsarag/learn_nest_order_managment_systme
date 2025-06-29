@@ -12,7 +12,7 @@ import { Repository } from "typeorm";
 import { Product } from "./product.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/user.entity";
-import { jwtTypePayload } from "src/utils/types";
+import { JwtTypePayload } from "src/utils/types";
 import { Role } from "src/utils/enum";
 
 type productType = {
@@ -36,8 +36,13 @@ export class ProductService {
     return new ProductResposeDto(newProduct);
   }
 
-  getAll() {
-    return this.productRepository.find();
+  async getAll() {
+    const products = await this.productRepository.find({
+      relations: {
+        user: true,
+      },
+    });
+    return products?.map((item) => new ProductResposeDto(item)) ?? [];
   }
   async getOne(id: number) {
     const product = await this.productRepository.findOne({
@@ -51,7 +56,7 @@ export class ProductService {
     return new ProductResposeDto(product);
   }
 
-  async update(dto: UpdateProduct, id: number, payload: jwtTypePayload) {
+  async update(dto: UpdateProduct, id: number, payload: JwtTypePayload) {
     const product = await this.getOne(id);
     let updatedProduct = product;
     if (product.user.id === payload.id || payload.role === Role.ADMIN) {
@@ -71,7 +76,7 @@ export class ProductService {
     }
   }
 
-  async delete(id: number, payload: jwtTypePayload): Promise<void> {
+  async delete(id: number, payload: JwtTypePayload): Promise<void> {
     const product = await this.getOne(id);
     if (product.user.id === payload.id || payload.role === Role.ADMIN) {
       await this.productRepository.delete(product.id);

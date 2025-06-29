@@ -1,4 +1,4 @@
-import { Exclude, Expose } from "class-transformer";
+import { Exclude, Expose, Transform } from "class-transformer";
 import {
   IsNotEmpty,
   IsNumber,
@@ -7,6 +7,7 @@ import {
   IsString,
   Length,
 } from "class-validator";
+import { Review } from "src/reviews/review.entity";
 import { User } from "src/users/user.entity";
 
 export class CreateProduct {
@@ -73,8 +74,18 @@ export class ProductResposeDto {
 
   @Expose()
   createdAt: Date;
-
+  @Expose()
+  @Transform(({ obj }) => {
+    if (!obj.user) return null;
+    return {
+      id: obj.user.id,
+      full_name: obj.user.full_name,
+    };
+  })
   user: User;
+
+  @Expose()
+  reviews: Review[];
 
   constructor(partial: Partial<ProductResposeDto>) {
     Object.assign(this, partial);

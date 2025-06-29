@@ -11,16 +11,18 @@ import {
   Post,
   SerializeOptions,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { LoginDto } from "./dto/login.dto";
 import { AuthGuard } from "./guards/auth.guard";
 
 import { currentUser, Roles } from "./decorators/user.decorators";
-import { jwtTypePayload } from "src/utils/types";
+import { JwtTypePayload } from "src/utils/types";
 import { Role } from "src/utils/enum";
 import { RegisterDto } from "./dto/register.dto";
 import { AdminUpdateUserDataDto, UpdateUserDto } from "./dto/update-user.dto";
+import { LoggerInterceptor } from "src/utils/interceptors/logger.interceptor";
 
 @Controller("/api")
 export class UserController {
@@ -40,14 +42,16 @@ export class UserController {
 
   @Get("/user")
   @UseGuards(AuthGuard)
-  currentUserDetails(@currentUser() payload: jwtTypePayload) {
+  @UseInterceptors(LoggerInterceptor)
+  currentUserDetails(@currentUser() payload: JwtTypePayload) {
     const { id } = payload;
+    console.log("Current user route handler called");
     return this.userService.userDetails(id);
   }
   @Patch("/user")
   @UseGuards(AuthGuard)
   updateUserData(
-    @currentUser() payload: jwtTypePayload,
+    @currentUser() payload: JwtTypePayload,
     @Body() body: UpdateUserDto,
   ) {
     const { id } = payload;
@@ -56,7 +60,7 @@ export class UserController {
   @Delete("/user")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleterUser(@currentUser() payload: jwtTypePayload) {
+  deleterUser(@currentUser() payload: JwtTypePayload) {
     return this.userService.delete(payload.id, payload);
   }
   // admin
@@ -95,7 +99,7 @@ export class UserController {
   @HttpCode(HttpStatus.NO_CONTENT)
   deleterUserByAdmin(
     @Param("id", ParseIntPipe) id: number,
-    @currentUser() payload: jwtTypePayload,
+    @currentUser() payload: JwtTypePayload,
   ) {
     return this.userService.delete(id, payload);
   }

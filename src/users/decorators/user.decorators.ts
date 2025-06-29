@@ -5,13 +5,13 @@ import {
 } from "@nestjs/common";
 import { CURETNT_USER_KEY } from "src/utils/constant";
 import { Role } from "src/utils/enum";
-import { jwtTypePayload } from "src/utils/types";
+import { JwtTypePayload } from "src/utils/types";
 
 // currentUser parameter Decorator
 export const currentUser = createParamDecorator(
   (data, context: ExecutionContext) => {
     const req = context.switchToHttp().getRequest();
-    const user: jwtTypePayload = req[CURETNT_USER_KEY];
+    const user: JwtTypePayload = req[CURETNT_USER_KEY];
     return user;
   },
 );
