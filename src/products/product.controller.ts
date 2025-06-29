@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { ProductService } from "./product.service";
@@ -39,8 +40,14 @@ export class ProductController {
     return this.productSerivice.update(body, id, payload);
   }
   @Get()
-  getAllProducts() {
-    return this.productSerivice.getAll();
+  getAllProducts(
+    @Query() query: { title: string; minPrice: string; maxPrice: string },
+  ) {
+    return this.productSerivice.getAll(
+      query.title,
+      query.minPrice,
+      query.maxPrice,
+    );
   }
   @Get(":id")
   getSinglePorduct(@Param("id", ParseIntPipe) id: number) {

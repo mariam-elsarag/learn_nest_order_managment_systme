@@ -8,7 +8,13 @@ import {
   ProductResposeDto,
   UpdateProduct,
 } from "./dto/product.dto";
-import { Repository } from "typeorm";
+import {
+  Between,
+  LessThanOrEqual,
+  Like,
+  MoreThanOrEqual,
+  Repository,
+} from "typeorm";
 import { Product } from "./product.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/user.entity";
@@ -36,8 +42,18 @@ export class ProductService {
     return new ProductResposeDto(newProduct);
   }
 
-  async getAll() {
+  async getAll(title?: string, minPrice?: string, maxPrice?: string) {
+    const filter = {
+      ...(title ? { title: Like(`%${title}%`) } : {}),
+      ...(minPrice && maxPrice
+        ? { price: Between(parseInt(minPrice), parseInt(maxPrice)) }
+        : {}),
+      ...(minPrice ? { price: MoreThanOrEqual(+minPrice) } : {}),
+      ...(maxPrice ? { price: LessThanOrEqual(+maxPrice) } : {}),
+    };
+
     const products = await this.productRepository.find({
+      where: filter,
       relations: {
         user: true,
       },
