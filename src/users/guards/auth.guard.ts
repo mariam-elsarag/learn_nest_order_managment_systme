@@ -1,7 +1,6 @@
 import {
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -60,7 +59,7 @@ export class AuthGuard implements CanActivate {
 
       // check if this endpoint has authorization if yes and role if user not equal to type we want we will have exception
       if (roles && roles.length > 0 && !roles.includes(user.role)) {
-        throw new ForbiddenException(
+        throw new UnauthorizedException(
           "You are not allowed to perform this action.",
         );
       }
@@ -75,10 +74,7 @@ export class AuthGuard implements CanActivate {
       ) {
         throw new UnauthorizedException("Invalid or expired token.");
       }
-      if (
-        error instanceof UnauthorizedException ||
-        error instanceof ForbiddenException
-      ) {
+      if (error instanceof UnauthorizedException) {
         throw error;
       }
       throw new UnauthorizedException("Authentication failed.");
