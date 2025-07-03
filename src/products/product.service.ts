@@ -20,6 +20,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/user.entity";
 import { JwtTypePayload } from "src/utils/types";
 import { Role } from "src/utils/enum";
+import { Request } from "express";
+import {
+  FullPaginationDto,
+  LinkPaginationDto,
+  MetaPaginationDto,
+} from "src/common/pagination/pagination.dto";
 
 type productType = {
   id: number;
@@ -42,23 +48,50 @@ export class ProductService {
     return new ProductResposeDto(newProduct);
   }
 
-  async getAll(title?: string, minPrice?: string, maxPrice?: string) {
-    const filter = {
-      ...(title ? { title: Like(`%${title}%`) } : {}),
-      ...(minPrice && maxPrice
-        ? { price: Between(parseInt(minPrice), parseInt(maxPrice)) }
-        : {}),
-      ...(minPrice ? { price: MoreThanOrEqual(+minPrice) } : {}),
-      ...(maxPrice ? { price: LessThanOrEqual(+maxPrice) } : {}),
-    };
+  async getAll({
+    title,
+    minPrice,
+    maxPrice,
+    page,
+    limit,
+    req,
+  }: {
+    title?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    page: number;
+    limit: number;
+    req: Request;
+  }) {
+    const queryString =
+      await this.productRepository.createQueryBuilder("product");
 
-    const products = await this.productRepository.find({
-      where: filter,
-      relations: {
-        user: true,
-      },
-    });
-    return products?.map((item) => new ProductResposeDto(item)) ?? [];
+    if (title) {
+      queryString.andWhere("product.title ILIKE :title", {
+        title: `%${title}%`,
+      });
+    }
+
+    if (minPrice) {
+      queryString.andWhere("product.price >= :minPrice", {
+        minPrice: Number(minPrice),
+      });
+    }
+
+    if (maxPrice) {
+      queryString.andWhere("product.price <= :maxPrice", {
+        maxPrice: Number(maxPrice),
+      });
+    }
+    const [results, count] = await queryString
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const route: string = `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}`;
+    const pages = Math.ceil(count / limit);
+    const query = req.query;
+    return new FullPaginationDto(page, pages, count, route, query, results);
   }
   async getOne(id: number) {
     const product = await this.productRepository.findOne({

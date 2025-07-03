@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ProductService } from "./product.service";
@@ -19,6 +20,9 @@ import { currentUser } from "src/users/decorators/user.decorators";
 
 import { User } from "src/users/user.entity";
 import { JwtTypePayload } from "src/utils/types";
+import { PaginationQueryDto } from "src/common/pagination/pagination-query.dto";
+import { ProductFilterQueryDto } from "./dto/product-filter.dto";
+import { Request } from "express";
 
 @Controller("/api/product")
 export class ProductController {
@@ -40,15 +44,20 @@ export class ProductController {
     return this.productSerivice.update(body, id, payload);
   }
   @Get()
-  getAllProducts(
-    @Query() query: { title: string; minPrice: string; maxPrice: string },
-  ) {
-    return this.productSerivice.getAll(
-      query.title,
-      query.minPrice,
-      query.maxPrice,
-    );
+  getAllProducts(@Query() query: ProductFilterQueryDto, @Req() req: Request) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 2;
+
+    return this.productSerivice.getAll({
+      title: query.title,
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+      page,
+      limit,
+      req,
+    });
   }
+
   @Get(":id")
   getSinglePorduct(@Param("id", ParseIntPipe) id: number) {
     return this.productSerivice.getOne(id);
