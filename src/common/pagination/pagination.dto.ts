@@ -1,7 +1,9 @@
+import { Request } from "express";
+
 /**
- * Shared class for build URL
+ * Shared base class to build pagination URLs
  */
-class BasePagination<T> {
+export class BasePagination<T> {
   protected buildUrl(
     page: number,
     route: string,
@@ -14,11 +16,10 @@ class BasePagination<T> {
     return `${route}?${params.toString()}`;
   }
 }
-/**
- * For basic pagination
- * return (page,pages,count,results)
- */
 
+/**
+ * Basic pagination DTO (no links)
+ */
 export class MetaPaginationDto<T> {
   constructor(
     public page: number,
@@ -29,38 +30,36 @@ export class MetaPaginationDto<T> {
 }
 
 /**
- * For Links pagination
- * return (count,next,prev,results)
+ * Link-based pagination DTO (next, prev links)
  */
 export class LinkPaginationDto<T> extends BasePagination<T> {
   count: number;
+  page: number;
   next: string | null;
   prev: string | null;
   results: T[];
 
   constructor(
     page: number,
-    pages: number,
     count: number,
-    route: string,
-    query: Record<string, any> = {},
+    limit: number,
+    req: Request,
     results: T[],
   ) {
     super();
     this.count = count;
+
+    const pages = Math.ceil(count / limit);
+    const route = `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}`;
+
+    this.next = page < pages ? this.buildUrl(page + 1, route, req.query) : null;
+    this.prev = page > 1 ? this.buildUrl(page - 1, route, req.query) : null;
     this.results = results;
-
-    const hasNext = page < pages;
-    const hasPrev = page > 1;
-
-    this.next = hasNext ? this.buildUrl(page + 1, route, query) : null;
-    this.prev = hasPrev ? this.buildUrl(page - 1, route, query) : null;
   }
 }
 
 /**
- * For full  pagination
- * return (page,pages,count,next,prev,results)
+ * Full pagination DTO (all metadata + links)
  */
 export class FullPaginationDto<T> extends BasePagination<T> {
   page: number;
@@ -72,22 +71,22 @@ export class FullPaginationDto<T> extends BasePagination<T> {
 
   constructor(
     page: number,
-    pages: number,
     count: number,
-    route: string,
-    query: Record<string, any> = {},
+    limit: number,
+    req: Request,
     results: T[],
   ) {
     super();
     this.page = page;
-    this.pages = pages;
+    this.pages = Math.ceil(count / limit);
     this.count = count;
     this.results = results;
 
-    const hasNext = page < pages;
+    const hasNext = page < this.pages;
     const hasPrev = page > 1;
+    const route = `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}`;
 
-    this.next = hasNext ? this.buildUrl(page + 1, route, query) : null;
-    this.prev = hasPrev ? this.buildUrl(page - 1, route, query) : null;
+    this.next = hasNext ? this.buildUrl(page + 1, route, req.query) : null;
+    this.prev = hasPrev ? this.buildUrl(page - 1, route, req.query) : null;
   }
 }

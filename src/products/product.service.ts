@@ -88,10 +88,7 @@ export class ProductService {
       .take(limit)
       .getManyAndCount();
 
-    const route: string = `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}`;
-    const pages = Math.ceil(count / limit);
-    const query = req.query;
-    return new FullPaginationDto(page, pages, count, route, query, results);
+    return new FullPaginationDto(page, count, limit, req, results);
   }
   async getOne(id: number) {
     const product = await this.productRepository.findOne({
