@@ -18,6 +18,9 @@ class UserType {
   @IsEmail()
   @MaxLength(250)
   email?: string;
+
+  @IsOptional()
+  avatar: string | null;
 }
 
 export class UpdateUserDto extends UserType {

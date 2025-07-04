@@ -13,6 +13,8 @@ import { RegisterDto, RegisterResponseDto } from "./dto/register.dto";
 import { UserResponseDto } from "./dto/user.dto";
 import { Role } from "src/utils/enum";
 import { AuthProvider } from "./auth.provider";
+import { join } from "path";
+import { existsSync, unlinkSync } from "fs";
 
 @Injectable()
 export class UserService {
@@ -80,6 +82,7 @@ export class UserService {
   async updaterUserData<T extends Partial<User>>(
     id: number,
     body: T,
+    file?: Express.Multer.File,
   ): Promise<UserResponseDto> {
     const user = await this.userDetails(id);
     Object.entries(body).forEach(([key, value]) => {
@@ -90,6 +93,20 @@ export class UserService {
     if (body.password) {
       user.password = await this.authProvider.hashPassword(body.password);
       user.passwordChangedAt = new Date();
+    }
+    if (file && file.fieldname === "avatar") {
+      if (user.avatar) {
+        const imagePath = join(
+          process.cwd(),
+          `./mediaFiles/user/${user.avatar}`,
+        );
+        // this will delete image
+        if (existsSync(imagePath)) {
+          unlinkSync(imagePath);
+        }
+      }
+
+      user.avatar = file.filename ?? null;
     }
     const updatedUser = await this.userRepository.save(user);
     return new UserResponseDto(updatedUser);

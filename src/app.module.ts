@@ -10,9 +10,11 @@ import { Review } from "./reviews/review.entity";
 import { User } from "./users/user.entity";
 import { JwtModule } from "@nestjs/jwt";
 import { APP_INTERCEPTOR } from "@nestjs/core";
+import { UploadModule } from "./upload/upload.module";
 
 @Module({
   imports: [
+    UploadModule,
     UserModule,
     ProductModule,
     OrderModule,

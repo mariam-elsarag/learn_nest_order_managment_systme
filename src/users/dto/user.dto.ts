@@ -19,6 +19,9 @@ export class UserResponseDto {
   passwordChangedAt: Date;
 
   @Expose()
+  avatar: string | null;
+
+  @Expose()
   createdAt: Date;
   constructor(partial: Partial<UserResponseDto>) {
     Object.assign(this, partial);
