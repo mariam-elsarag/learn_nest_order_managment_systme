@@ -52,6 +52,13 @@ export class AuthGuard implements CanActivate {
       if (!user) {
         throw new UnauthorizedException("User not found.");
       }
+      //check if user activate account
+      if (!user.isAccountVerify) {
+        throw new UnauthorizedException(
+          "Your account is not active. Please verify your account first.",
+        );
+      }
+
       // check password change after change IAT
       if (this.isTokenBeforePasswordChange(user, payload.iat)) {
         throw new UnauthorizedException("Invalid or expired token.");

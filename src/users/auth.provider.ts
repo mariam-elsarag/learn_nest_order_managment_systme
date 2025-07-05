@@ -66,6 +66,12 @@ export class AuthProvider {
         "The email or password you entered is incorrect.",
       );
     }
+    if (!user.isAccountVerify) {
+      throw new BadRequestException(
+        "Your account is not active. Please verify your account first.",
+      );
+    }
+
     if (!(await bcrypt.compare(password, user.password))) {
       throw new BadRequestException(
         "The email or password you entered is incorrect.",
