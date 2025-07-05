@@ -18,10 +18,9 @@ export class RegisterDto {
   @IsNotEmpty()
   password: string;
 
-  @IsOptional()
   @IsString()
   @MaxLength(150)
-  full_name?: string;
+  full_name: string;
 }
 
 @Exclude()

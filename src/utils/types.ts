@@ -10,3 +10,7 @@ export type JwtReturnTypePayload = {
   role: string;
   iat: number;
 };
+
+export type EmailType = {
+  type: "activate" | "forget";
+};

@@ -11,6 +11,7 @@ import { User } from "./users/user.entity";
 import { JwtModule } from "@nestjs/jwt";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { UploadModule } from "./upload/upload.module";
+import { MailModule } from "./mail/mail.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UploadModule } from "./upload/upload.module";
     ProductModule,
     OrderModule,
     ReviewModule,
+    MailModule,
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {

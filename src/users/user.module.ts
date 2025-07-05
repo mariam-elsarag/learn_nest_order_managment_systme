@@ -6,9 +6,11 @@ import { UserController } from "./user.controller";
 import { AuthProvider } from "./auth.provider";
 import { MulterModule } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
+import { MailModule } from "src/mail/mail.module";
 
 @Module({
   imports: [
+    MailModule,
     TypeOrmModule.forFeature([User]),
     MulterModule.register({
       storage: diskStorage({

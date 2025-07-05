@@ -87,6 +87,9 @@ export class AuthGuard implements CanActivate {
   }
 
   private isTokenBeforePasswordChange(user: User, iat: number): boolean {
+    if (!user.passwordChangedAt) {
+      return false;
+    }
     return (
       user.passwordChangedAt &&
       Math.floor(new Date(user.passwordChangedAt).getTime() / 1000) > iat

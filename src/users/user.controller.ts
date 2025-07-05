@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   SerializeOptions,
   UploadedFile,
   UseGuards,
@@ -19,16 +20,23 @@ import { LoginDto } from "./dto/login.dto";
 import { AuthGuard } from "./guards/auth.guard";
 
 import { currentUser, Roles } from "./decorators/user.decorators";
-import { JwtTypePayload } from "src/utils/types";
+import { EmailType, JwtTypePayload } from "src/utils/types";
 import { Role } from "src/utils/enum";
 import { RegisterDto } from "./dto/register.dto";
 import { AdminUpdateUserDataDto, UpdateUserDto } from "./dto/update-user.dto";
 import { LoggerInterceptor } from "src/utils/interceptors/logger.interceptor";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { AuthProvider } from "./auth.provider";
+import { SendOtpDto, VerifyOtpDto } from "./dto/verify-otp.dto";
+import { AcceptFormData } from "src/common/decorators/accept-form-data.decorator";
+import { ChangePasswordDto } from "./dto/change-password.dto";
 
 @Controller("/api")
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authProvider: AuthProvider,
+  ) {}
 
   @Post("/auth/register")
   @SerializeOptions({ strategy: "excludeAll" })
@@ -40,6 +48,27 @@ export class UserController {
   @SerializeOptions({ strategy: "excludeAll" })
   login(@Body() body: LoginDto) {
     return this.userService.login(body);
+  }
+  // Post : send otp
+  @Post("/auth/otp")
+  @AcceptFormData()
+  @HttpCode(HttpStatus.OK)
+  sendOtp(@Body() body: SendOtpDto, @Query() query: EmailType) {
+    return this.authProvider.sendOtp(body, query);
+  }
+
+  //post : verify otp
+  @Post("/auth/verify-otp")
+  @AcceptFormData()
+  @HttpCode(HttpStatus.OK)
+  verifyOtp(@Body() body: VerifyOtpDto, @Query() query: EmailType) {
+    return this.authProvider.verify(body, query);
+  }
+  //patch: reset password
+  @Patch("/auth/reset-password")
+  @AcceptFormData()
+  resetPassword(@Body() body: ChangePasswordDto) {
+    return this.authProvider.changePassword(body);
   }
 
   @Get("/user")

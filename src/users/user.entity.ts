@@ -36,8 +36,16 @@ export class User {
   @Column({ type: "boolean", default: false })
   isAccountVerify: boolean;
 
-  @CreateDateColumn({ type: "timestamp", default: null })
-  passwordChangedAt: Date;
+  @Column({ type: "varchar", nullable: true, length: 255 })
+  otp: string | null;
+  @Column({ type: "timestamp", nullable: true })
+  otpExpiredAt: Date | null;
+
+  @CreateDateColumn({ type: "timestamp", nullable: true })
+  passwordChangedAt: Date | null;
+
+  @Column({ type: "boolean", default: false })
+  isForgetPassword: boolean;
 
   @CreateDateColumn({ type: "timestamp", default: () => CURENT_TIMESTAMP })
   createdAt: Date;

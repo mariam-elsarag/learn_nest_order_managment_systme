@@ -16,7 +16,7 @@ export class UserResponseDto {
   role: Role;
 
   password: string;
-  passwordChangedAt: Date;
+  passwordChangedAt: Date | null;
 
   @Expose()
   avatar: string | null;
