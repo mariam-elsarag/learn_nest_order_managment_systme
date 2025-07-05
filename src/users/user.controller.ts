@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -26,7 +25,6 @@ import { RegisterDto } from "./dto/register.dto";
 import { AdminUpdateUserDataDto, UpdateUserDto } from "./dto/update-user.dto";
 import { LoggerInterceptor } from "src/utils/interceptors/logger.interceptor";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
 
 @Controller("/api")
 export class UserController {
@@ -54,26 +52,7 @@ export class UserController {
   }
   @Patch("/user")
   @UseGuards(AuthGuard)
-  @UseInterceptors(
-    FileInterceptor("avatar", {
-      storage: diskStorage({
-        destination: "./mediaFiles/user",
-        filename: (req, file, cb) => {
-          const prefex = `${Date.now()}-${Math.round(Math.random() * 1000000)}`;
-          const fileName = `${prefex}-${file.originalname}`;
-          cb(null, fileName);
-        },
-      }),
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith("image")) {
-          cb(null, true);
-        } else {
-          cb(new BadRequestException("Unsuported file type"), false);
-        }
-      },
-      limits: { fieldSize: 1024 * 1024 * 30 },
-    }),
-  )
+  @UseInterceptors(FileInterceptor("avatar"))
   updateUserData(
     @currentUser() payload: JwtTypePayload,
     @Body() body: UpdateUserDto,
