@@ -21,10 +21,10 @@ import { MailModule } from "./mail/mail.module";
 import { LoggerMiddleware } from "./utils/middlewares/logger.middleware";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { dataSourceOptions } from "db/data-source";
-import { APPController } from "./app.controller";
+import { AppController } from "./app.controller";
 
 @Module({
-  controllers: [APPController],
+  controllers: [AppController],
   imports: [
     UploadModule,
     UserModule,
