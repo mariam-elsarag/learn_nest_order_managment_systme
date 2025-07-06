@@ -39,6 +39,7 @@ export class UserController {
   ) {}
 
   @Post("/auth/register")
+  @AcceptFormData()
   @SerializeOptions({ strategy: "excludeAll" })
   register(@Body() body: RegisterDto) {
     return this.userService.register(body);

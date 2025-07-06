@@ -20,8 +20,11 @@ import { UploadModule } from "./upload/upload.module";
 import { MailModule } from "./mail/mail.module";
 import { LoggerMiddleware } from "./utils/middlewares/logger.middleware";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { dataSourceOptions } from "db/data-source";
+import { APPController } from "./app.controller";
 
 @Module({
+  controllers: [APPController],
   imports: [
     UploadModule,
     UserModule,
@@ -29,21 +32,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
     OrderModule,
     ReviewModule,
     MailModule,
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          type: "postgres",
-          database: config.get<string>("DB_DATABASE"),
-          username: config.get<string>("DB_USERNAME"),
-          password: config.get<string>("DB_PASSWORD"),
-          port: config.get<number>("DB_PORT"),
-          host: "localhost",
-          synchronize: process.env.NODE_ENV !== "producation" ? true : false, //only in dev(no need for migration ) in porducation will delete data
-          entities: [Product, Review, User],
-        };
-      },
-    }),
+    TypeOrmModule.forRoot(dataSourceOptions),
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       global: true,
@@ -95,3 +84,20 @@ export class AppModule implements NestModule {
     //   .forRoutes({ path: "*", method: RequestMethod.ALL });
   }
 }
+
+//for local db
+// TypeOrmModule.forRootAsync({
+//   inject: [ConfigService],
+//   useFactory: (config: ConfigService) => {
+//     return {
+//       type: "postgres",
+//       database: config.get<string>("DB_DATABASE"),
+//       username: config.get<string>("DB_USERNAME"),
+//       password: config.get<string>("DB_PASSWORD"),
+//       port: config.get<number>("DB_PORT"),
+//       host: "localhost",
+//       synchronize: process.env.NODE_ENV !== "producation" ? true : false, //only in dev(no need for migration ) in porducation will delete data
+//       entities: [Product, Review, User],
+//     };
+//   },
+// }),
