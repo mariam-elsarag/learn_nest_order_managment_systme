@@ -23,7 +23,9 @@ import { JwtTypePayload } from "src/utils/types";
 import { PaginationQueryDto } from "src/common/pagination/pagination-query.dto";
 import { ProductFilterQueryDto } from "./dto/product-filter.dto";
 import { Request } from "express";
+import { SkipThrottle, Throttle } from "@nestjs/throttler";
 
+// @SkipThrottle() // if we added her mean this route won't have rate limit
 @Controller("/api/product")
 export class ProductController {
   constructor(private readonly productSerivice: ProductService) {}
@@ -35,6 +37,7 @@ export class ProductController {
   }
 
   @Patch(":id")
+  // @Throttle({ default: { limit: 1, ttl: 10000 } }) //if i wanna change defult for limti and time in route
   @UseGuards(AuthGuard)
   updateProduct(
     @Body() body: UpdateProduct,
@@ -59,6 +62,7 @@ export class ProductController {
   }
 
   @Get(":id")
+  @SkipThrottle() //this only for one route
   getSinglePorduct(@Param("id", ParseIntPipe) id: number) {
     return this.productSerivice.getOne(id);
   }

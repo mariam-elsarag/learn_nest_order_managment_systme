@@ -67,6 +67,8 @@ export class AuthProvider {
       );
     }
     if (!user.isAccountVerify) {
+      const otp = await this.generateOtp(3, user);
+      await this.mailerService.activateAccountEmail(email, user.full_name, otp);
       throw new BadRequestException(
         "Your account is not active. Please verify your account first.",
       );
@@ -102,7 +104,7 @@ export class AuthProvider {
       throw new NotFoundException("User not found");
     }
     const otp = await this.generateOtp(3, user);
-    console.log(type.type, "ty");
+
     if (type.type === "forget") {
       await this.mailerService.forgetPasswordEmail(email, user.full_name, otp);
     } else {
@@ -144,7 +146,7 @@ export class AuthProvider {
     }
     user.otp = null;
     await this.userRepository.save(user);
-    return { message: "OTP sent successfully" };
+    return { message: "OTP verified successfully" };
   }
 
   //======================

@@ -1,4 +1,10 @@
-import { ClassSerializerInterceptor, Module } from "@nestjs/common";
+import {
+  ClassSerializerInterceptor,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from "@nestjs/common";
 import { UserModule } from "./users/user.module";
 import { ProductModule } from "./products/product.module";
 import { OrderModule } from "./orders/order.module";
@@ -9,9 +15,11 @@ import { ReviewModule } from "./reviews/review.module";
 import { Review } from "./reviews/review.entity";
 import { User } from "./users/user.entity";
 import { JwtModule } from "@nestjs/jwt";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { UploadModule } from "./upload/upload.module";
 import { MailModule } from "./mail/mail.module";
+import { LoggerMiddleware } from "./utils/middlewares/logger.middleware";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
   imports: [
@@ -49,12 +57,41 @@ import { MailModule } from "./mail/mail.module";
       },
     }),
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000, //1 minute
+          limit: 3, //10 request every minute
+        },
+      ],
+    }),
   ],
   providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
     },
+    { provide: APP_GUARD, useClass: ThrottlerGuard }, //if i wanna to skip to route i will use in controller skipThrottle
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .exclude({ path: "/api/users", method: RequestMethod.DELETE }) //this if i waana apply it to all methods in path except delete
+      .forRoutes(
+        {
+          // we can add more than middleware in consurem (LoggerMiddleware,AtuthMiddleware)
+          path: "users", // if for all route insted of users will be *
+          method: RequestMethod.ALL,
+        },
+        // {
+        //   path: "/api/products",
+        //   method: RequestMethod.DELETE,
+        // },
+      );
+    // consumer //this to see how to add more than middleware for different methods
+    //   .apply(LoggerMiddleware)
+    //   .forRoutes({ path: "*", method: RequestMethod.ALL });
+  }
+}

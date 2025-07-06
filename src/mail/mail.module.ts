@@ -5,6 +5,7 @@ import { MailService } from "./mail.service";
 import { join } from "path";
 import { EjsAdapter } from "@nestjs-modules/mailer/dist/adapters/ejs.adapter";
 
+//we added to nest-cli json code to make watch template folder
 @Module({
   imports: [
     MailerModule.forRootAsync({
@@ -22,7 +23,7 @@ import { EjsAdapter } from "@nestjs-modules/mailer/dist/adapters/ejs.adapter";
           from: '"My App" <no-reply@myapp.com>',
         },
         template: {
-          dir: join(process.cwd(), "src", "mail", "templates"),
+          dir: join(__dirname, "templates"),
           adapter: new EjsAdapter({
             inlineCssEnabled: true,
           }),
